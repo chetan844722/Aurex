@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AU-rex Security Dashboard</title>
+    
+    <!-- Include necessary libraries -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/soft-ui-dashboard.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2196F3;
+            --secondary: #1a3a5a;
+            --background: #0a192f;
+            --text: #ffffff;
+            --card-bg: rgba(11, 36, 71, 0.95);
+            --hover-effect: rgba(33, 150, 243, 0.2);
+        }
+
+        [data-theme="light"] {
+            --primary: #1a73e8;
+            --secondary: #f8f9fa;
+            --background: #ffffff;
+            --text: #2c3e50;
+            --card-bg: rgba(248, 249, 250, 0.95);
+            --hover-effect: rgba(26, 115, 232, 0.1);
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(-45deg, #0a192f, #1a3a5a, #2196F3, #90caf9);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        .dashboard {
+            display: none;
+            height: 100vh;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .data-table {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            overflow-x: auto;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-completed { background: #4CAF50; }
+        .status-failed { background: #f44336; }
+        .status-in-progress { background: #FFC107; }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="g-sidenav-show">
+
+<!-- Login Page -->
+<div class="login-container" id="loginContainer">
+    <form class="login-form" id="loginForm">
+        <h2 class="text-white mb-4">AU-rex Security Portal</h2>
+        <div class="input-group input-group-outline mb-3">
+            <input type="text" class="form-control" id="username" placeholder="Username" required>
+        </div>
+        <div class="input-group input-group-outline mb-4">
+            <input type="password" class="form-control" id="password" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn bg-gradient-primary w-100">ACCESS SYSTEM</button>
+        <div class="text-danger mt-2" id="loginError"></div>
+    </form>
+</div>
+
+<!-- Main Dashboard -->
+<nav class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3" id="sidenav-main">
+    <div class="sidenav-header">
+        <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute right-0 top-0 d-none d-xl-none" id="iconSidenav"></i>
+        <a class="navbar-brand m-0" href="#">
+            <span class="ms-1 font-weight-bold text-white">AU-rex Security</span>
+        </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="#dashboard">
+                    <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2">
+                        <i class="ni ni-tv-2 text-dark"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Security Dashboard</span>
+                </a>
+            </li>
+            <!-- Add more navigation items as needed -->
+        </ul>
+    </div>
+</nav>
+
+<div class="main-content" id="panel">
+    <div class="container-fluid py-4">
+        <!-- Metrics Section -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3 class="text-sm mb-0">Total Processes</h3>
+                <h2 class="font-weight-bolder mb-0" id="totalProcesses">0</h2>
+                <span class="text-success text-sm"><i class="fas fa-arrow-up"></i> 12%</span>
+            </div>
+            <!-- Add other metric cards similarly -->
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div id="statusTrend"></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div id="statusDistribution"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table Section -->
+        <div class="data-table">
+            <div class="card-header pb-0">
+                <h6>Process Monitoring</h6>
+                <div class="d-flex align-items-center">
+                    <input type="text" class="form-control w-25 me-2" placeholder="Search..." 
+                           id="searchInput" onkeyup="filterData()">
+                    <select class="form-select w-25 me-2" id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Failed">Failed</option>
+                        <option value="In Progress">In Progress</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0" id="processTable">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-white">UID</th>
+                                <th class="text-uppercase text-white">PID</th>
+                                <th class="text-uppercase text-white">Status</th>
+                                <th class="text-uppercase text-white">Source IP</th>
+                                <th class="text-uppercase text-white">Start Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Authentication System
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        if(username === 'admin' && password === 'admin123') {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('panel').style.display = 'block';
+            initializeDashboard();
+        } else {
+            document.getElementById('loginError').textContent = 'Invalid credentials!';
+        }
+    });
+
+    // Dashboard Initialization
+    function initializeDashboard() {
+        const data = generateData();
+        updateMetrics(data);
+        createStatusTrend(data);
+        createStatusDistribution(data);
+        updateTable(data);
+    }
+
+    // Data Generation
+    function generateData() {
+        const data = [];
+        const statuses = ['Completed', 'Failed', 'In Progress'];
+        const now = new Date();
+        
+        for (let i = 0; i < 100; i++) {
+            data.push({
+                uid: `UID${String(i).padStart(6, '0')}`,
+                pid: `PID${String(i).padStart(6, '0')}`,
+                status: statuses[Math.floor(Math.random() * statuses.length)],
+                sourceIp: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                startTime: new Date(now - Math.random() * 86400000 * 30)
+            });
+        }
+        return data;
+    }
+
+    // Update Metrics
+    function updateMetrics(data) {
+        document.getElementById('totalProcesses').textContent = data.length;
+        // Update other metrics similarly
+    }
+
+    // Create Charts
+    function createStatusTrend(data) {
+        // Plotly chart implementation
+    }
+
+    function createStatusDistribution(data) {
+        // Plotly pie chart implementation
+    }
+
+    // Update Table
+    function updateTable(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = data.map(item => `
+            <tr>
+                <td>${item.uid}</td>
+                <td>${item.pid}</td>
+                <td>
+                    <span class="status-indicator status-${item.status.toLowerCase().replace(' ', '-')}"></span>
+                    ${item.status}
+                </td>
+                <td>${item.sourceIp}</td>
+                <td>${item.startTime.toLocaleString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    // Filter Functionality
+    function filterData() {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        const statusValue = document.getElementById('statusFilter').value;
+        
+        const filteredData = data.filter(item => {
+            const matchesSearch = item.uid.toLowerCase().includes(searchValue) || 
+                                item.pid.toLowerCase().includes(searchValue);
+            const matchesStatus = statusValue === 'all' || item.status === statusValue;
+            return matchesSearch && matchesStatus;
+        });
+        
+        updateTable(filteredData);
+    }
+</script>
+</body>
+</html>
